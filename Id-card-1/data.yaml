@@ -1,0 +1,13 @@
+names:
+  - Formal Shirt
+  - id_card
+nc: 2
+roboflow:
+  license: CC BY 4.0
+  project: id-card-scnph
+  url: https://universe.roboflow.com/jaycharan/id-card-scnph/dataset/1
+  version: 1
+  workspace: jaycharan
+test: C:\Users\91964\OneDrive\Desktop\PAD_Rishi\Id-card-1\test\images
+train: C:\Users\91964\OneDrive\Desktop\PAD_Rishi\Id-card-1\train\images
+val: C:\Users\91964\OneDrive\Desktop\PAD_Rishi\Id-card-1\valid\images
