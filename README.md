@@ -31,7 +31,8 @@ This project is a computer vision-based compliance monitoring system that detect
 
 ## 🔍 System Workflow
 
-<img src="./images/system_architecture.png" width="500"/>
+<img s![4a0ef6a3-f6de-45fc-8259-be8198832bbb](https://github.com/user-attachments/assets/2a02a279-2dd9-4c35-a553-87b43865795d)
+
 
 **Fig.4 Formal Dress Code Compliance Monitoring Flow**
 
@@ -93,8 +94,9 @@ python main.py
 - Sends violation reports to the specified email ID.
 - Emails include a `.zip` file containing images of non-compliant individuals.
 - Example:
+- 
+![46c649b6-9841-42ac-8b0c-7d2f7e41146c](https://github.com/user-attachments/assets/729adcff-a75c-4073-bbcc-e7a5737f8fb6)
 
-<img src="./images/email_alert.png" width="400"/>
 
 ---
 
