@@ -31,7 +31,8 @@ This project is a computer vision-based compliance monitoring system that detect
 
 ## 🔍 System Workflow
 
-<img s![4a0ef6a3-f6de-45fc-8259-be8198832bbb](https://github.com/user-attachments/assets/2a02a279-2dd9-4c35-a553-87b43865795d)
+![4a0ef6a3-f6de-45fc-8259-be8198832bbb](https://github.com/user-attachments/assets/e15e9bdd-c667-49cf-a3d0-ecc91acb996d)
+
 
 
 **Fig.4 Formal Dress Code Compliance Monitoring Flow**
@@ -46,17 +47,17 @@ This project is a computer vision-based compliance monitoring system that detect
 
 ---
 
-## 🖼️ Sample Output
 
-<img src="./images/output_1.png" width="700"/>
+
 
 **Fig.2 Formal and ID Card Detection**
 
 - ✅ Detected ID Card and Formal Dress
 - ❌ No ID Card but Formal Dress
 
-<img src="./images/email_alert.png" width="400"/>
 
+
+![43efb79e-a942-400c-af18-696db55df643](https://github.com/user-attachments/assets/1d87efa8-6f31-49c6-8329-b0b6fe228983)
 **Fig.3 Email Alert with Zipped Violations**
 
 ---
