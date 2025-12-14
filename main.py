@@ -6,15 +6,21 @@ import time
 from datetime import datetime
 from ultralytics import YOLO
 from google.cloud import vision
+from google.api_core.client_options import ClientOptions
 
-# ✅ Initialize Google Vision API
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\91964\OneDrive\Desktop\PAD_Rishi\exsel-452618-1eff91091801.json"
-vision_client = vision.ImageAnnotatorClient()
 
-# ✅ Load YOLO model for ID card detection
-yolo_model = YOLO(r"C:\Users\91964\OneDrive\Desktop\PAD_Rishi\runs\detect\train3\weights\best.pt")
+# Use Google Vision API key instead of service account JSON
+# Prefer setting `GOOGLE_API_KEY` via environment; fallback to hardcoded key if provided
+API_KEY = os.getenv("GOOGLE_API_KEY", "AIzaSyDnj1Xc6WerHQdoYfdIqnrUAqvorfavsd4")
 
-# ✅ Define required formal clothing items
+# Initialize Vision client with API key
+client_options = ClientOptions(api_key=API_KEY)
+vision_client = vision.ImageAnnotatorClient(client_options=client_options)
+
+
+yolo_model = YOLO(r"C:\Users\91964\OneDrive\Desktop\ID Card and Formal Dress Code Detection System\runs\detect\train3\weights\best.pt")
+
+
 REQUIRED_FORMAL_ITEMS = [
     {"shirt", "pants"}, {"shirt", "trousers"}, {"blouse", "skirt", "dupatta"},
     {"shirt", "skirt", "dupatta"}, {"blouse", "pants", "dupatta"}, {"shirt", "pants", "dupatta"},
@@ -22,18 +28,18 @@ REQUIRED_FORMAL_ITEMS = [
     {"kurta", "pajama"}, {"formal dress"}, {"saree"}, {"blazer", "shirt", "trousers"},
     {"three-piece suit"}, {"dupatta", "blouse", "skirt"}, {"dupatta", "shirt", "pants"},
     {"top", "pants"}, {"top", "trousers"}, {"top", "skirt"}, {"clothing"},
-    {"top"}, {"shirt"}  # Ensure "top" and "shirt" alone are considered formal
+    {"top"}, {"shirt"}
 ]
 
-# ✅ Automatically create violation folders
-base_folder = os.path.join(os.getcwd(), "Violations")  # Saves in script directory
+
+base_folder = os.path.join(os.getcwd(), "Violations")  
 no_id_folder = os.path.join(base_folder, "No_ID_Card")
 no_formal_folder = os.path.join(base_folder, "No_Formal_Dress")
 
 os.makedirs(no_id_folder, exist_ok=True)
 os.makedirs(no_formal_folder, exist_ok=True)
 
-# ✅ Track last save time to ensure images are saved every 5 seconds
+
 last_save_time = time.time()
 
 def detect_objects_google_vision(image):
@@ -45,12 +51,16 @@ def detect_objects_google_vision(image):
     image_data = encoded_image.tobytes()
     image = vision.Image(content=image_data)
 
-    response = vision_client.object_localization(image=image)
-    detected_objects = {obj.name.lower() for obj in response.localized_object_annotations}
-    bounding_boxes = [(obj.name.lower(), [(vertex.x, vertex.y) for vertex in obj.bounding_poly.normalized_vertices])
-                      for obj in response.localized_object_annotations]
+    try:
+        response = vision_client.object_localization(image=image)
+        detected_objects = {obj.name.lower() for obj in response.localized_object_annotations}
+        bounding_boxes = [(obj.name.lower(), [(vertex.x, vertex.y) for vertex in obj.bounding_poly.normalized_vertices])
+                          for obj in response.localized_object_annotations]
 
-    return detected_objects, bounding_boxes
+        return detected_objects, bounding_boxes
+    except Exception as e:
+        print(f"Google Vision error: {e}")
+        return set(), []
 
 def is_formal_wear(detected_objects):
     """Checks if detected clothing meets formal wear criteria."""
@@ -70,7 +80,7 @@ def draw_boxes(image, bounding_boxes):
         cv2.putText(image, obj_name, (pts[0][0][0], pts[0][0][1] - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
-# ✅ Open webcam (0 = default camera)
+
 cap = cv2.VideoCapture(0)
 
 def process_frame():
@@ -81,27 +91,27 @@ def process_frame():
             print("❌ Error: Could not capture frame")
             break
 
-        # ✅ Copy frames for parallel processing
+        
         yolo_frame = frame.copy()
         vision_frame = frame.copy()
 
-        # ✅ Run YOLO for ID card detection
+        
         yolo_results = yolo_model(yolo_frame)
         detected_classes = [yolo_model.names[int(box.cls)] for result in yolo_results for box in result.boxes]
 
-        # ✅ Check if "id_card" is detected
+        
         id_card_detected = "id_card" in detected_classes
 
-        # ✅ Run Google Vision in a separate thread for efficiency
+        
         vision_thread = threading.Thread(target=lambda: detect_objects_google_vision(vision_frame))
         vision_thread.start()
         detected_objects, bounding_boxes = detect_objects_google_vision(vision_frame)
         vision_thread.join()
 
-        # ✅ Determine if formal wear is detected
+        
         formal_detected = is_formal_wear(detected_objects)
 
-        # ✅ Display ID card detection window
+      
         for result in yolo_results:
             img = result.plot()
             img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -109,13 +119,13 @@ def process_frame():
                         (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0) if id_card_detected else (0, 0, 255), 3)
             cv2.imshow("YOLO ID Card Detection", img_bgr)
 
-        # ✅ Display formal dress detection window
+        
         draw_boxes(vision_frame, bounding_boxes)
         cv2.putText(vision_frame, f"Formal Wear: {'Yes' if formal_detected else 'No'}",
                     (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0) if formal_detected else (0, 0, 255), 3)
         cv2.imshow("Google Vision Formal Dress Detection", vision_frame)
 
-        # ✅ Save images based on violation type (every 5 seconds)
+        
         current_time = time.time()
         if current_time - last_save_time >= 5:
             last_save_time = current_time
@@ -131,7 +141,7 @@ def process_frame():
                 cv2.imwrite(no_formal_path, frame)
                 print(f"🚨 No Formal Dress detected! Image saved at: {no_formal_path}")
 
-        # ✅ Exit on pressing 'q'
+        
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
